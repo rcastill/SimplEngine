@@ -3,20 +3,21 @@
 //
 
 #include "Resource.h"
+#include "GraphicsEngine.h"
+
+#include <iostream>
 
 Resource::Resource(string path) :
     path(path),
+    resUnique(false),
     refCount(1)
 {
+    cout << "Resource(" << path << ")" << endl;
 }
 
 Resource::~Resource()
 {
-}
-
-void Resource::setGraphicsEngine(GraphicsEngine *engine)
-{
-    gfx = engine;
+    cout << "~Resource(" << path << ")" <<  endl;
 }
 
 

@@ -5,12 +5,14 @@
 #ifndef PROJECT_STRAT_RESOURCE_H
 #define PROJECT_STRAT_RESOURCE_H
 
-#include "GraphicsEngine.h"
+//#include "GraphicsEngine.h"
 #include <memory>
 #include <string>
+#include <vector>
 
 using namespace std;
 
+class GraphicsEngine;
 class Resource;
 typedef vector<shared_ptr<Resource>> ResourceVector;
 
@@ -22,8 +24,6 @@ public:
 
     void retain();
     void dispose();
-
-    void setGraphicsEngine(GraphicsEngine *gfx);
 
     bool unique() const;
     void unique(bool unique);
