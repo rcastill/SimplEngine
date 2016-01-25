@@ -5,13 +5,14 @@
 #ifndef PROJECT_STRAT_TESTOBJECT_H
 #define PROJECT_STRAT_TESTOBJECT_H
 
-
-#include "GraphicObject.h"
-#include "Texture.h"
+#include "GfxSDL2Engine.h"
+//#include "GraphicObject.h"
+//#include "Texture.h"
 
 class TestObject : public GraphicObject
 {
 public:
+    TestObject();
     ~TestObject();
 
     void init();
