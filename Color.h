@@ -6,6 +6,7 @@
 #define PROJECT_STRAT_COLOR_H
 
 #include <SDL2/SDL_stdinc.h>
+#include <SDL_pixels.h>
 
 class Color
 {
@@ -25,12 +26,16 @@ public:
     void rgb(int r, int g, int b);
     void rgba(int r, int g, int b, int a);
 
+    SDL_Color getSdlColor();
+
     Color negative();
 
     static Color BLACK;
     static Color WHITE;
 
 private:
+    SDL_Color sdlColor;
+
     int red;
     int green;
     int blue;

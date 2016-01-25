@@ -69,3 +69,13 @@ Color Color::negative()
 
 Color Color::BLACK(0, 0, 0);
 Color Color::WHITE(255, 255, 255);
+
+SDL_Color Color::getSdlColor()
+{
+    sdlColor.r = (Uint8) red;
+    sdlColor.g = (Uint8) green;
+    sdlColor.b = (Uint8) blue;
+    sdlColor.a = (Uint8) alpha;
+
+    return sdlColor;
+}
