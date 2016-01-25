@@ -6,16 +6,36 @@
 #define PROJECT_STRAT_GAME_H
 
 #include "GraphicObject.h"
+#include "MainMenu.h"
 #include "TestObject.h"
+#include "GameScene.h"
+
+class MainMenu;
+class GameScene;
 
 class Game : public GraphicObject
 {
+    enum State
+    {
+        IN_MAIN_MENU,
+        IN_GAME
+    };
+
 public:
+    Game();
+    ~Game();
+
     void init();
     void update(SDL_Event &event);
 
+    void startGame();
+
+    void toMainMenu();
+
 private:
-    TestObject *stick;
+    MainMenu *mainMenu;
+    GameScene *gameScene;
+    State currentState;
 };
 
 
