@@ -9,13 +9,13 @@ GameScene::GameScene(Game *game) :
     stick(nullptr),
     stickEnabled(true)
 {
-
 }
 
 void GameScene::init()
 {
     stick = addChild<TestObject>();
     backButton = addChild<SimpleButton>(this, "Back");
+    fighter = addChild<Fighter>(this);
 
     enabled(false);
 }

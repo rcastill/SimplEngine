@@ -9,9 +9,13 @@
 #include "MainMenu.h"
 #include "TestObject.h"
 #include "GameScene.h"
+#include <string>
+#include <sstream>
 
 class MainMenu;
 class GameScene;
+
+using namespace std;
 
 class Game : public GraphicObject
 {
@@ -22,12 +26,12 @@ class Game : public GraphicObject
     };
 
 public:
-    Game();
+    Game(string baseTitle);
     ~Game();
 
     void init();
-    void update(SDL_Event &event);
-
+    void onQuit();
+    void onKeyPressed(SDL_Keycode key);
     void startGame();
 
     void toMainMenu();
@@ -36,6 +40,7 @@ private:
     MainMenu *mainMenu;
     GameScene *gameScene;
     State currentState;
+    string baseTitle;
 };
 
 

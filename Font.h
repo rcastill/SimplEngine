@@ -11,6 +11,13 @@
 
 using namespace std;
 
+enum FontQuality
+{
+    FQ_HIGH,
+    FQ_MID,
+    FQ_LOW
+};
+
 class Font : public Resource
 {
 public:

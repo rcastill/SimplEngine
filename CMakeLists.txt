@@ -3,8 +3,8 @@ project(Project_Strat)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
-set(LIBSRC_FILES GraphicsEngine.cc GraphicsEngine.h Color.cc Color.h GraphicObject.cc GraphicObject.h Resource.cc Resource.h Texture.cc Texture.h Font.cc Font.h)
-set(SOURCE_FILES main.cc TestObject.cc TestObject.h Game.cc Game.h MainMenu.cc MainMenu.h SimpleButton.cc SimpleButton.h ButtonMaster.h GameScene.cc GameScene.h)
+set(LIBSRC_FILES GraphicsEngine.cc GraphicsEngine.h Color.cc Color.h GraphicObject.cc GraphicObject.h Resource.cc Resource.h Texture.cc Texture.h Font.cc Font.h Renderer.cc Renderer.h Position.cc Position.h)
+set(SOURCE_FILES main.cc TestObject.cc TestObject.h Game.cc Game.h MainMenu.cc MainMenu.h SimpleButton.cc SimpleButton.h ButtonMaster.h GameScene.cc GameScene.h Fighter.cc Fighter.h)
 add_library(GfxSdlEngine ${LIBSRC_FILES})
 add_executable(Project_Strat ${SOURCE_FILES})
 
@@ -19,3 +19,4 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} GfxSdlEngine ${SDL2_LIBRARIES} ${SDL2IMAGE
 
 CONFIGURE_FILE(stick.png stick.png COPYONLY)
 CONFIGURE_FILE(Cantarell-Regular.ttf Cantarell-Regular.ttf COPYONLY)
+CONFIGURE_FILE(fighter.png fighter.png COPYONLY)

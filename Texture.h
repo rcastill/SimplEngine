@@ -17,6 +17,7 @@ class Texture : public Resource
 {
 public:
     Texture(string path);
+    ~Texture();
 
     void updateInfo();
 
@@ -26,8 +27,9 @@ public:
 
 private:
     friend class GraphicsEngine;
+    friend class Renderer;
 
-    unique_ptr<SDL_Texture, function<void(SDL_Texture*)>> sdlTexture;
+    SDL_Texture *sdlTexture;
     SDL_Rect srcrect;
     bool fullSource;
 

@@ -16,9 +16,10 @@ public:
     ~TestObject();
 
     void init();
-    void render();
+    void render(Renderer &renderer);
 
 private:
+    Position pos;
     Texture *texture;
 };
 

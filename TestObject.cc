@@ -5,7 +5,8 @@
 #include <iostream>
 #include "TestObject.h"
 
-TestObject::TestObject()
+TestObject::TestObject() :
+    pos(400, 300)
 {
     cout << "TestObject()" << endl;
 }
@@ -21,9 +22,10 @@ void TestObject::init()
     texture->unique(true);
 }
 
-void TestObject::render()
+void TestObject::render(Renderer &renderer)
 {
-    int w = gfx->width() / 2 - texture->getWidth() / 2;
-    int h = gfx->height() / 2 - texture->getHeight() / 2;
-    gfx->renderTexture(texture, w, h);
+    /*int x = screenWidth() / 2 - texture->getWidth() / 2;
+    int y = screenHeight() / 2 - texture->getHeight() / 2;*/
+    renderer.renderTexture(texture, pos);
+    //renderTexture(texture, w, h);
 }

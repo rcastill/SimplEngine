@@ -23,34 +23,33 @@ SimpleButton::~SimpleButton()
 
 void SimpleButton::init()
 {
-    cantarellRegular = gfx->loadFont("Cantarell-Regular.ttf", 24);
-    normalTexture = gfx->makeText(cantarellRegular, text, Color::WHITE, FQ_MID);
-    hoverTexture = gfx->makeText(cantarellRegular, text, Color::BLACK, FQ_MID);
+    cantarellRegular = loadFont("Cantarell-Regular.ttf", 24);
+    normalTexture = makeText(cantarellRegular, text, Color::WHITE, FQ_MID);
+    hoverTexture = makeText(cantarellRegular, text, Color::BLACK, FQ_MID);
     activeTexture = normalTexture;
 }
 
-void SimpleButton::update(SDL_Event &event)
+void SimpleButton::onMouseMotion(int x, int y)
 {
-    if (event.type == SDL_MOUSEMOTION) {
-        if (inside(event.motion.x, event.motion.y))
-            activeTexture = hoverTexture;
-        else
-            activeTexture = normalTexture;
-    }
-
-    if (event.type == SDL_MOUSEBUTTONUP) {
-        if (inside(event.button.x, event.button.y))
-            master->onPrimaryClick(this);
-    }
+    if (inside(x, y))
+        activeTexture = hoverTexture;
+    else
+        activeTexture = normalTexture;
 }
 
-void SimpleButton::render()
+void SimpleButton::onMouseLeftReleased(int x, int y)
 {
-    gfx->renderTexture(activeTexture, x, y);
+    if (inside(x, y))
+        master->onPrimaryClick(this);
+}
+
+void SimpleButton::render(Renderer &renderer)
+{
+    renderer.renderTexture(activeTexture, x, y);
 }
 
 bool SimpleButton::inside(int x, int y)
 {
-    return (x >= this->x && x <= this->x + activeTexture->getWidth() &&
-            y >= this->y && y <= this->y + activeTexture->getHeight());
+    return (x >= this->x - activeTexture->getWidth() / 2 && x <= this->x + activeTexture->getWidth() / 2 &&
+            y >= this->y - activeTexture->getHeight() / 2 && y <= this->y + activeTexture->getHeight() / 2);
 }

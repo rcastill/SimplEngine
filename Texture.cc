@@ -5,15 +5,21 @@
 #include "Texture.h"
 
 Texture::Texture(string path) :
+    sdlTexture(nullptr),
     Resource(path),
     fullSource(true)
 {
-    sdlTexture.get_deleter() = [](SDL_Texture *t) { SDL_DestroyTexture(t); };
+}
+
+Texture::~Texture()
+{
+    if (sdlTexture)
+        SDL_DestroyTexture(sdlTexture);
 }
 
 void Texture::updateInfo()
 {
-    SDL_QueryTexture(sdlTexture.get(), &format, &access, &width, &height);
+    SDL_QueryTexture(sdlTexture, &format, &access, &width, &height);
 }
 
 int Texture::getWidth()

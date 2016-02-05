@@ -9,8 +9,8 @@
 
 Resource::Resource(string path) :
     path(path),
-    resUnique(false),
-    refCount(1)
+    refCount(1),
+    resUnique(false)
 {
     cout << "Resource(" << path << ")" << endl;
 }

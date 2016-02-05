@@ -6,8 +6,9 @@
 
 #include <iostream>
 
-Game::Game() :
-    currentState(IN_MAIN_MENU)
+Game::Game(string baseTitle) :
+    currentState(IN_MAIN_MENU),
+    baseTitle(baseTitle)
 {
     cout << "Game()" << endl;
 }
@@ -19,14 +20,20 @@ Game::~Game()
 
 void Game::init()
 {
+    windowTitle(baseTitle);
     mainMenu = addChild<MainMenu>(this);
     gameScene = addChild<GameScene>(this);
 }
 
-void Game::update(SDL_Event &event)
+void Game::onQuit()
 {
-    if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE))
-        gfx->stop();
+    stop();
+}
+
+void Game::onKeyPressed(SDL_Keycode key)
+{
+    if (key == SDLK_ESCAPE)
+        stop();
 }
 
 void Game::startGame()

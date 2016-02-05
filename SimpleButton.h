@@ -11,9 +11,12 @@
 #include "Font.h"
 #include "Texture.h"
 #include "Color.h"
+#include "Renderer.h"
 #include <string>
 
 using namespace std;
+
+class Game;
 
 class SimpleButton : public GraphicObject
 {
@@ -22,8 +25,9 @@ public:
     ~SimpleButton();
 
     void init();
-    void update(SDL_Event &event);
-    void render();
+    void onMouseMotion(int x, int y);
+    void onMouseLeftReleased(int x, int y);
+    void render(Renderer &renderer);
 
     bool inside(int x, int y);
 

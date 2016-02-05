@@ -14,6 +14,7 @@
 #include "GraphicObject.h"
 #include "Texture.h"
 #include "Font.h"
+#include "Renderer.h"
 
 /* TODO: Fix font caching (different sizes) */
 
@@ -26,13 +27,6 @@ typedef vector<shared_ptr<GraphicObject>> GfxObjectVector;
 typedef queue<shared_ptr<GraphicObject>> ObjectQueue;
 typedef vector<shared_ptr<Resource>> ResourceVector;
 
-enum FontQuality
-{
-    FQ_HIGH,
-    FQ_MID,
-    FQ_LOW
-};
-
 class GraphicsEngine
 {
 public:
@@ -42,7 +36,8 @@ public:
         ~SDL2Systems();
     };
 
-    GraphicsEngine(string title, int width, int height);
+    GraphicsEngine(string title, int width, int height, double fps = 60);
+    GraphicsEngine(int width, int height, double fps = 60);
     ~GraphicsEngine();
 
     void openWindow();
@@ -53,6 +48,9 @@ public:
     template <typename T, typename... A>
     T *addObject(A... args);
 
+    void windowTitle(string wTitle);
+    string windowTitle() const;
+
     int width() const;
     int height() const;
     void size(int &w, int &h) const;
@@ -61,12 +59,17 @@ public:
     Font *loadFont(string path, int size);
     Texture *makeText(Font *font, string text, Color color, FontQuality quality = FQ_LOW, bool unique = true);
 
-    void renderTexture(Texture *texture, SDL_Rect dstrect);
-    void renderTexture(Texture *texture, int x, int y, int w, int h);
-    void renderTexture(Texture *texture, int x, int y);
     void disposeResource(Resource *resource);
 
-    void setLoopDelay(int loopDelay);
+    void triggerUpdateCallbacks();
+    void triggerContinuousUpdate();
+
+    double deltaTime() const;
+    void deltaTime(double delta);
+
+    /* Updated every second */
+    int getFps() const;
+
     void mainloop();
     void stop();
 
@@ -75,9 +78,19 @@ private:
     void cacheResource(shared_ptr<Resource> resource);
     shared_ptr<Texture> makeTexture(string path, SDL_Texture *raw);
 
+    /* Loads queue with initial objects (Root children) */
+    void loadQueue();
+    /* Iterates over tree in level order and applies each node with callback if node is
+     * enabled */
+    void doLevel(function<void(shared_ptr<GraphicObject>&)> callback);
+    ObjectQueue objectQueue;
+
+
+
     unique_ptr<SDL_Window, function<void(SDL_Window*)>> sdlWindow;
     unique_ptr<SDL_Renderer, function<void(SDL_Renderer*)>> sdlRenderer;
-    string windowTitle;
+    Renderer renderer;
+    string wTitle;
     int windowWidth;
     int windowHeight;
 
@@ -87,6 +100,9 @@ private:
 
     bool running;
     int loopDelay;
+
+    double delta;
+    int fps;
 };
 
 #include "GraphicsEngine.tcc"

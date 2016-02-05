@@ -10,6 +10,7 @@
 #include "TestObject.h"
 #include "SimpleButton.h"
 #include "Game.h"
+#include "Fighter.h"
 
 class Game;
 
@@ -27,6 +28,7 @@ private:
     Game *game;
 
     TestObject *stick;
+    Fighter *fighter;
     bool stickEnabled;
 
     SimpleButton *backButton;

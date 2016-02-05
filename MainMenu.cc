@@ -34,5 +34,5 @@ void MainMenu::onPrimaryClick(SimpleButton *button)
         game->startGame();
 
     else if (button == exitButton)
-        gfx->stop();
+        stop();
 }

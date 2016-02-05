@@ -1,12 +1,18 @@
 #include "GraphicsEngine.h"
+#include "GraphicObject.h"
 
 #include <iostream>
 
-GraphicsEngine::GraphicsEngine(string title, int width, int height) :
-    windowTitle(title),
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "missing_default_case"
+
+GraphicsEngine::GraphicsEngine(string title, int width, int height, double fps) :
+    wTitle(title),
     windowWidth(width),
     windowHeight(height),
-    running(true)
+    running(true),
+    delta(1 / fps),
+    fps((int) fps)
 {
     SDL_Window *tmpWindow = SDL_CreateWindow(
             title.c_str(),
@@ -25,6 +31,7 @@ GraphicsEngine::GraphicsEngine(string title, int width, int height) :
     sdlWindow.reset(tmpWindow);
 
     SDL_Renderer *tmpRenderer = SDL_CreateRenderer(sdlWindow.get(), -1, SDL_RENDERER_ACCELERATED);
+    renderer = Renderer(tmpRenderer);
 
     if (tmpRenderer == 0)
         throw runtime_error(SDL_GetError());
@@ -35,6 +42,11 @@ GraphicsEngine::GraphicsEngine(string title, int width, int height) :
     sdlRenderer.reset(tmpRenderer);
 }
 
+GraphicsEngine::GraphicsEngine(int width, int height, double fps)
+    : GraphicsEngine("", width, height, fps)
+{
+}
+
 GraphicsEngine::~GraphicsEngine()
 {
     for (auto &object : gfxObjects)
@@ -43,11 +55,11 @@ GraphicsEngine::~GraphicsEngine()
     cout << "~GraphicsEngine" << endl;
 }
 
+
 void GraphicsEngine::openWindow()
 {
     SDL_ShowWindow(sdlWindow.get());
 }
-
 
 void GraphicsEngine::delay(int msecs)
 {
@@ -65,6 +77,17 @@ void GraphicsEngine::setRenderColor(Color color)
     );
 }
 
+void GraphicsEngine::windowTitle(string wTitle)
+{
+    this->wTitle = wTitle;
+    SDL_SetWindowTitle(sdlWindow.get(), wTitle.c_str());
+}
+
+string GraphicsEngine::windowTitle() const
+{
+    return wTitle;
+}
+
 int GraphicsEngine::width() const
 {
     return windowWidth;
@@ -75,68 +98,201 @@ int GraphicsEngine::height() const
     return windowHeight;
 }
 
-void GraphicsEngine::setLoopDelay(int loopDelay)
+double GraphicsEngine::deltaTime() const
 {
-    this->loopDelay = loopDelay;
+    return delta;
+}
+
+void GraphicsEngine::deltaTime(double delta)
+{
+    this->delta = delta;
+}
+
+void GraphicsEngine::loadQueue()
+{
+    for (auto obj : gfxObjects)
+        objectQueue.push(obj);
+}
+
+void GraphicsEngine::doLevel(function<void(shared_ptr<GraphicObject> &)> callback)
+{
+    while (!objectQueue.empty()) {
+        auto object = objectQueue.front();
+        objectQueue.pop();
+
+        if (!object->enabled())
+            continue;
+
+        callback(object);
+
+        for (auto &child : object->children)
+            objectQueue.push(child);
+    }
+}
+
+void GraphicsEngine::triggerUpdateCallbacks()
+{
+    SDL_Event event;
+
+    while (SDL_PollEvent(&event) != 0) {
+        /* Update objects */
+        loadQueue();
+        doLevel([&event](shared_ptr<GraphicObject> &obj)
+        {
+            if (event.type == SDL_MOUSEBUTTONDOWN) {
+                switch (event.button.button) {
+                    case SDL_BUTTON_LEFT:
+                        obj->onMouseLeftPressed(event.button.x, event.button.y);
+                        break;
+
+                    case SDL_BUTTON_MIDDLE:
+                        obj->onMouseMiddlePressed(event.button.x, event.button.y);
+                        break;
+
+                    case SDL_BUTTON_RIGHT:
+                        obj->onMouseRightPressed(event.button.x, event.button.y);
+                        break;
+                }
+
+            } else if (event.type == SDL_MOUSEBUTTONUP) {
+                switch (event.button.button) {
+                    case SDL_BUTTON_LEFT:
+                        obj->onMouseLeftReleased(event.button.x, event.button.y);
+                        break;
+
+                    case SDL_BUTTON_MIDDLE:
+                        obj->onMouseMiddleReleased(event.button.x, event.button.y);
+                        break;
+
+                    case SDL_BUTTON_RIGHT:
+                        obj->onMouseRightReleased(event.button.x, event.button.y);
+                        break;
+                }
+
+            } else if (event.type == SDL_MOUSEMOTION) {
+                obj->onMouseMotion(event.motion.x, event.motion.y);
+
+            } else if (event.type == SDL_KEYDOWN) {
+                obj->onKeyPressed(event.key.keysym.sym);
+
+            } else if (event.type == SDL_KEYUP) {
+                obj->onKeyReleased(event.key.keysym.sym);
+
+            } else if (event.type == SDL_QUIT) {
+                obj->onQuit();
+            }
+        });
+    }
+}
+
+void GraphicsEngine::triggerContinuousUpdate()
+{
+    /* Mouse continuous state */
+    MouseState mouseState;
+    Uint32 contButton;
+
+    /* Get continuous state */
+    contButton = SDL_GetMouseState(&mouseState.pos.x, &mouseState.pos.y);
+    mouseState.leftPressed = (bool) (contButton & SDL_BUTTON(SDL_BUTTON_LEFT));
+    mouseState.middlePressed = (bool) (contButton & SDL_BUTTON(SDL_BUTTON_MIDDLE));
+    mouseState.rightPressed = (bool) (contButton & SDL_BUTTON(SDL_BUTTON_RIGHT));
+
+    // Free update
+    loadQueue();
+    doLevel([&mouseState](shared_ptr<GraphicObject> &obj)
+    {
+        obj->continuousUpdate(SDL_GetKeyboardState(NULL), mouseState);
+    });
+}
+
+int GraphicsEngine::getFps() const
+{
+    return fps;
 }
 
 void GraphicsEngine::mainloop()
 {
-
-    SDL_Event event;
-    ObjectQueue objectQueue;
-
-    /* Loads queue with initial objects (Root children) */
-    auto loadQueue = [&objectQueue, this] () {
-        for (auto obj : gfxObjects)
-            objectQueue.push(obj);
+    auto ticks2secs = []() -> double
+    {
+        return SDL_GetTicks() / 1000.0;
     };
 
-
-    /* Iterates over tree in level order and applies each node with callback if node is
-     * enabled */
-    auto doLevel = [&objectQueue] (function<void(shared_ptr<GraphicObject>&)> callback) {
-        while (!objectQueue.empty()) {
-            auto object = objectQueue.front();
-            objectQueue.pop();
-
-            if (!object->enabled())
-                continue;
-
-            callback(object);
-
-            for (auto &child : object->children)
-                objectQueue.push(child);
-        }
-
-    };
+    /* Should render? */
+    bool render;
 
     /* Init objects */
     loadQueue();
-    doLevel([this](shared_ptr<GraphicObject> &obj) {
+    doLevel([this](shared_ptr<GraphicObject> &obj)
+    {
         obj->gfx = this;
         obj->init();
     });
 
-    while (running) {
-        SDL_RenderClear(sdlRenderer.get());
+    /* Fixed delta time */
+    //double delta = frameTime;
 
-        while (SDL_PollEvent(&event) != 0) {
-            /* Update objects */
-            loadQueue();
-            doLevel([&event](shared_ptr<GraphicObject> &obj) {
-                obj->update(event);
-            });
+    /* Time variables */
+    double currentTime = ticks2secs();
+    double accumulator = 0.0;
+    double newTime;
+    double frameTime;
+
+    /* Stats variables */
+    double elapsed = 0;
+    int frameCount = 0;
+
+    while (running) {
+        /* Reset */
+        render = false;
+
+        /* Get render frame lasting time */
+        newTime = ticks2secs();
+        frameTime = newTime - currentTime;
+        currentTime = newTime;
+
+        /* Increase accumulator and second counter */
+        accumulator += frameTime;
+        elapsed += frameTime;
+
+        /* "spend" the accumulator time until is lower than the delta time.
+        while we have time accumulated left, we onUpdate the scene. */
+        while (accumulator > delta) {
+            render = true;
+
+            /* Update Callbacks */
+            triggerUpdateCallbacks();
+
+            /* Continuous update */
+            triggerContinuousUpdate();
+
+            accumulator -= delta;
         }
 
-        /* Render objects */
-        loadQueue();
-        doLevel([](shared_ptr<GraphicObject> &obj) {
-            obj->render();
-        });
+        if (render) {
+            SDL_RenderClear(sdlRenderer.get());
 
-        SDL_RenderPresent(sdlRenderer.get());
-        SDL_Delay((Uint32) loopDelay);
+            renderer.enabled(true);
+            loadQueue();
+            doLevel([this](shared_ptr<GraphicObject> &obj)
+            {
+                obj->render(renderer);
+            });
+            renderer.enabled(false);
+
+            SDL_RenderPresent(sdlRenderer.get());
+
+            /* One more frame in this second */
+            frameCount++;
+
+        } else {
+            /* Optimization */
+            SDL_Delay(1);
+        }
+
+        if (elapsed >= 1) {
+            fps = frameCount;
+            elapsed = frameCount = 0;
+        }
     }
 }
 
@@ -235,33 +391,6 @@ Texture *GraphicsEngine::makeText(Font *font, string text, Color color, FontQual
     return texture.get();
 }
 
-void GraphicsEngine::renderTexture(Texture *texture, SDL_Rect dstrect)
-{
-    if (!texture)
-        throw runtime_error("Could not render texture.");
-
-    SDL_RenderCopy(sdlRenderer.get(),
-                   texture->sdlTexture.get(),
-                   (texture->fullSource) ? 0 : &(texture->srcrect),
-                   &dstrect);
-}
-
-void GraphicsEngine::renderTexture(Texture *texture, int x, int y, int w, int h)
-{
-    SDL_Rect dstrect = {x, y, w, h};
-    renderTexture(texture, dstrect);
-}
-
-void GraphicsEngine::renderTexture(Texture *texture, int x, int y)
-{
-    if (!texture)
-        throw runtime_error("Could not render texture.");
-
-    int w, h;
-    texture->getSize(w, h);
-    renderTexture(texture, x, y, w, h);
-}
-
 void GraphicsEngine::size(int &w, int &h) const
 {
     w = windowWidth;
@@ -298,7 +427,7 @@ void GraphicsEngine::cacheResource(shared_ptr<Resource> resource)
 shared_ptr<Texture> GraphicsEngine::makeTexture(string path, SDL_Texture *raw)
 {
     auto texture = make_shared<Texture>(path);
-    texture->sdlTexture.reset(raw);
+    texture->sdlTexture = raw;
     texture->updateInfo();
     return texture;
 }
@@ -323,3 +452,5 @@ GraphicsEngine::SDL2Systems::~SDL2Systems()
     IMG_Quit();
     SDL_Quit();
 }
+
+#pragma clang diagnostic pop
