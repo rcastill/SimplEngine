@@ -7,31 +7,26 @@
 
 
 #include "GraphicObject.h"
-#include "TestObject.h"
 #include "SimpleButton.h"
 #include "Game.h"
 #include "Fighter.h"
 
 class Game;
 
-class GameScene : public GraphicObject, public ButtonMaster
+class GameScene : public GraphicObject
 {
 public:
     GameScene(Game *game);
 
     void init();
-    void update(SDL_Event &event);
+    void render(Renderer &renderer);
 
-    void onPrimaryClick(SimpleButton *button);
+    void onKeyReleased(SDL_Keycode key);
 
 private:
     Game *game;
-
-    TestObject *stick;
     Fighter *fighter;
-    bool stickEnabled;
-
-    SimpleButton *backButton;
+    Texture *background;
 };
 
 

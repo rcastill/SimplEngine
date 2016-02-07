@@ -4,32 +4,29 @@
 
 #include "GameScene.h"
 
+#include <iostream>
+
 GameScene::GameScene(Game *game) :
-    game(game),
-    stick(nullptr),
-    stickEnabled(true)
+    game(game)
 {
 }
 
 void GameScene::init()
 {
-    stick = addChild<TestObject>();
-    backButton = addChild<SimpleButton>(this, "Back");
-    fighter = addChild<Fighter>(this);
-
+    background = loadTexture("background.png");
+    fighter = addChild<Fighter>(this, "volkr");
     enabled(false);
+    renderLayer(BACKGROUND);
 }
 
-void GameScene::update(SDL_Event &event)
+
+void GameScene::render(Renderer &renderer)
 {
-    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_r) {
-        stickEnabled = !stickEnabled;
-        stick->enabled(stickEnabled);
-    }
+    renderer.renderTexture(background, screenWidth() / 2, screenHeight() / 2);
 }
 
-void GameScene::onPrimaryClick(SimpleButton *button)
+void GameScene::onKeyReleased(SDL_Keycode key)
 {
-    if (button == backButton)
+    if (key == SDLK_ESCAPE)
         game->toMainMenu();
 }
