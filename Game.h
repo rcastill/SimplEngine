@@ -7,7 +7,6 @@
 
 #include "GraphicObject.h"
 #include "MainMenu.h"
-#include "TestObject.h"
 #include "GameScene.h"
 #include <string>
 #include <sstream>
@@ -32,7 +31,12 @@ public:
     void init();
     void onQuit();
     void onKeyPressed(SDL_Keycode key);
+
+    void continuousUpdate(const Uint8 *keyboardPressed, MouseState mouseState);
+
     void startGame();
+
+    virtual void render(Renderer &renderer);
 
     void toMainMenu();
 
@@ -40,6 +44,8 @@ private:
     MainMenu *mainMenu;
     GameScene *gameScene;
     State currentState;
+    Font *cantarellRegular;
+    Texture *fpsText;
     string baseTitle;
 };
 
