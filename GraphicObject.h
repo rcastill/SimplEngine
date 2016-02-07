@@ -13,6 +13,7 @@
 #include "Font.h"
 #include "Color.h"
 #include "Renderer.h"
+#include "GraphicsEngine.h"
 
 class GraphicsEngine;
 class GraphicObject;
@@ -58,12 +59,14 @@ public:
     virtual void onKeyReleased(SDL_Keycode key);
     virtual void onQuit();
     virtual void continuousUpdate(const Uint8 *keyboardPressed, MouseState mouseState);
-    virtual void update(SDL_Event &event);
 
     virtual void render(Renderer &renderer);
 
     template <typename T, typename... A>
     T *addChild(A... args);
+
+    RenderLayer renderLayer() const;
+    void renderLayer(RenderLayer layer);
 
 protected:
     Texture *loadTexture(string path);
@@ -88,6 +91,11 @@ private:
     friend class GraphicsEngine;
     RawResourceVector resources;
     GraphicsEngine *gfx;
+
+    bool initialized;
+
+    /* Render layer and its backup */
+    RenderLayer layer;
 
     void unsetGraphicsEngine();
 };

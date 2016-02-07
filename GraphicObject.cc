@@ -1,16 +1,16 @@
 //
 
 #include "GraphicObject.h"
-#include "GraphicsEngine.h"
 
 #include <iostream>
 
-//
 // Created by rcastill on 12/18/15.
 
 GraphicObject::GraphicObject() :
     objectEnabled(true),
-    gfx(nullptr)
+    gfx(nullptr),
+    layer(DEFAULT),
+    initialized(false)
 {
 }
 
@@ -34,10 +34,10 @@ void GraphicObject::init()
 {
 }
 
+
 void GraphicObject::onMouseMotion(int x, int y)
 {
 }
-
 
 void GraphicObject::continuousUpdate(const Uint8 *keyboardPressed, MouseState mouseState)
 {
@@ -79,10 +79,6 @@ void GraphicObject::onMouseRightReleased(int x, int y)
 {
 }
 
-void GraphicObject::update(SDL_Event &event)
-{
-}
-
 void GraphicObject::render(Renderer &renderer)
 {
 }
@@ -94,6 +90,8 @@ bool GraphicObject::enabled() const
 
 void GraphicObject::enabled(bool objectEnabled)
 {
+    assert(gfx);
+    gfx->cacheObjects();
     this->objectEnabled = objectEnabled;
 }
 
@@ -181,4 +179,14 @@ void GraphicObject::screenSize(int &w, int &h)
 {
     assert(gfx);
     gfx->size(w, h);
+}
+
+RenderLayer GraphicObject::renderLayer() const
+{
+    return layer;
+}
+
+void GraphicObject::renderLayer(RenderLayer layer)
+{
+    this->layer = layer;
 }
