@@ -14,7 +14,7 @@ int main()
      * problem, still they were wrapped in RAII System Init.
      */
     auto RAIISystemInit = GraphicsEngine::SDL2Systems();
-    GraphicsEngine gfxEngine(800, 600);
+    GraphicsEngine gfxEngine(1024, 720);
     gfxEngine.setRenderColor(Color::WHITE);
     gfxEngine.addObject<Game>("GFX SDL2 Engine");
     gfxEngine.openWindow();

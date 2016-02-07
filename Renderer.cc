@@ -4,6 +4,8 @@
 
 #include "Renderer.h"
 
+#include <iostream>
+
 Renderer::Renderer(SDL_Renderer *renderer) :
     sdlRenderer(renderer),
     renderEnabled(false)
@@ -96,7 +98,7 @@ void Renderer::renderTexture(Texture *texture, int x, int y, double angle)
     renderTexture(texture, x, y, w, h, angle);
 }
 
-void Renderer::renderTexture(Texture *texture, Position vector3)
+void Renderer::renderTexture(Texture *texture, const Position &vector3)
 {
     if (!renderEnabled)
         return;

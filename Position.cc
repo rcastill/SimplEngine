@@ -1,19 +1,17 @@
-//
-// Created by rcastill on 1/31/16.
-//
-
 #include "Position.h"
 
-Position::Position(float x, float y, float speed, int r) :
+#define DEG(x) x * 180 * M_1_PI
+#define RAD(x) x * M_PI / 180
+
+Position::Position(float x, float y, double r) :
     x(x),
     y(y),
-    r(r),
-    speed(speed)
+    r(r)
 {
 }
 
 Position::Position() :
-        Position(0, 0, 0)
+    Position(0, 0, 0)
 {
 }
 
@@ -47,5 +45,14 @@ void Position::moveRight(double timeStep)
 
 void Position::lookTowards(int x, int y)
 {
-    r = (atan2f(x - this->x, y - this->y) * 180) / -3.14159265359 + 180;
+    r = 180 - DEG(atan2f(x - this->x, y - this->y));
+}
+
+void Position::moveForward(double timeStep)
+{
+    float dy = (float) (sin(M_PI_2 - RAD(r)) * speed);
+    float dx = (float) (cos(M_PI_2 - RAD(r)) * speed);
+
+    x += dx * timeStep;
+    y -= dy * timeStep;
 }

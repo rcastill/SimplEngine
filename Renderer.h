@@ -24,7 +24,7 @@ public:
     void renderTexture(Texture *texture, SDL_Rect dstrect, double angle = 0);
     void renderTexture(Texture *texture, int x, int y, int w, int h, double angle = 0);
     void renderTexture(Texture *texture, int x, int y, double angle = 0);
-    void renderTexture(Texture *texture, Position vector3);
+    void renderTexture(Texture *texture, const Position &vector3);
 
     void renderPresent();
     void renderClear();

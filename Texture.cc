@@ -5,8 +5,8 @@
 #include "Texture.h"
 
 Texture::Texture(string path) :
-    sdlTexture(nullptr),
     Resource(path),
+    sdlTexture(nullptr),
     fullSource(true)
 {
 }

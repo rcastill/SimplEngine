@@ -9,7 +9,7 @@
 
 struct Position
 {
-    Position(float x, float y, float speed = 0, int r = 0);
+    Position(float x, float y, double r = 0);
     Position();
 
     float x;
@@ -25,6 +25,7 @@ struct Position
     void moveLeft(double timeStep = 1.0);
     void moveDown(double timeStep = 1.0);
     void moveRight(double timeStep = 1.0);
+    void moveForward(double timeStep = 1.0);
 };
 
 

@@ -7,7 +7,6 @@
 
 #include "GfxSDL2Engine.h"
 #include "Game.h"
-#include "TestObject.h"
 #include "SimpleButton.h"
 #include "ButtonMaster.h"
 

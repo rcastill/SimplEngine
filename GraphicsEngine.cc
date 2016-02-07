@@ -6,7 +6,15 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "missing_default_case"
 
+bool LayerComparison::operator()(const shared_ptr<GraphicObject> &lhs, const shared_ptr<GraphicObject> &rhs)
+{
+    return lhs->renderLayer() > rhs->renderLayer();
+}
+
 GraphicsEngine::GraphicsEngine(string title, int width, int height, double fps) :
+    loadObjects(true),
+    currentQueue(&objectQueue1),
+    auxQueue(&objectQueue2),
     wTitle(title),
     windowWidth(width),
     windowHeight(height),
@@ -114,20 +122,60 @@ void GraphicsEngine::loadQueue()
         objectQueue.push(obj);
 }
 
-void GraphicsEngine::doLevel(function<void(shared_ptr<GraphicObject> &)> callback)
+void GraphicsEngine::doLevel(function<void(shared_ptr<GraphicObject> &)> callback,
+                             bool load,
+                             bool ignoreInitRestriction)
 {
-    while (!objectQueue.empty()) {
-        auto object = objectQueue.front();
-        objectQueue.pop();
+    if (load) {
+        /* clear queue */
+        while (!currentQueue->empty())
+            currentQueue->pop();
 
+        /* load root objects */
+        for (auto obj : gfxObjects)
+            currentQueue->push(obj);
+    }
+
+    while (!currentQueue->empty()) {
+        auto object = currentQueue->top();
+        auxQueue->push(object);
+        currentQueue->pop();
+
+        /* If not initialized */
+        if (!object->initialized && !ignoreInitRestriction)
+            continue;
+
+        /* If not enabled */
         if (!object->enabled())
             continue;
 
         callback(object);
 
-        for (auto &child : object->children)
-            objectQueue.push(child);
+        if (load) {
+            for (auto &child : object->children)
+                currentQueue->push(child);
+        }
     }
+
+    /* Swap currentQueue with auxQueue */
+    swapQueues();
+}
+
+void GraphicsEngine::swapQueues()
+{
+    ObjectQueue *tmp = currentQueue;
+    currentQueue = auxQueue;
+    auxQueue = tmp;
+}
+
+bool GraphicsEngine::shouldLoad()
+{
+    if (loadObjects) {
+        loadObjects = false;
+        return true;
+    }
+
+    return false;
 }
 
 void GraphicsEngine::triggerUpdateCallbacks()
@@ -136,7 +184,7 @@ void GraphicsEngine::triggerUpdateCallbacks()
 
     while (SDL_PollEvent(&event) != 0) {
         /* Update objects */
-        loadQueue();
+        //loadQueue();
         doLevel([&event](shared_ptr<GraphicObject> &obj)
         {
             if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -181,7 +229,8 @@ void GraphicsEngine::triggerUpdateCallbacks()
             } else if (event.type == SDL_QUIT) {
                 obj->onQuit();
             }
-        });
+
+        }, shouldLoad());
     }
 }
 
@@ -198,11 +247,12 @@ void GraphicsEngine::triggerContinuousUpdate()
     mouseState.rightPressed = (bool) (contButton & SDL_BUTTON(SDL_BUTTON_RIGHT));
 
     // Free update
-    loadQueue();
+    //loadQueue();
     doLevel([&mouseState](shared_ptr<GraphicObject> &obj)
     {
         obj->continuousUpdate(SDL_GetKeyboardState(NULL), mouseState);
-    });
+
+    }, shouldLoad());
 }
 
 int GraphicsEngine::getFps() const
@@ -221,12 +271,21 @@ void GraphicsEngine::mainloop()
     bool render;
 
     /* Init objects */
-    loadQueue();
+    //loadQueue();
     doLevel([this](shared_ptr<GraphicObject> &obj)
     {
         obj->gfx = this;
         obj->init();
-    });
+        obj->initialized = true;
+
+    }, shouldLoad(), true);
+
+    /* We most certainly have to reload */
+    loadObjects = true;
+
+    /* First children must not be initialized (again) */
+    while (!initQueue.empty())
+        initQueue.pop();
 
     /* Fixed delta time */
     //double delta = frameTime;
@@ -255,7 +314,7 @@ void GraphicsEngine::mainloop()
         elapsed += frameTime;
 
         /* "spend" the accumulator time until is lower than the delta time.
-        while we have time accumulated left, we onUpdate the scene. */
+        while we have time accumulated left, we trigger updates. */
         while (accumulator > delta) {
             render = true;
 
@@ -272,11 +331,12 @@ void GraphicsEngine::mainloop()
             SDL_RenderClear(sdlRenderer.get());
 
             renderer.enabled(true);
-            loadQueue();
+            //loadQueue();
             doLevel([this](shared_ptr<GraphicObject> &obj)
             {
                 obj->render(renderer);
-            });
+
+            }, shouldLoad());
             renderer.enabled(false);
 
             SDL_RenderPresent(sdlRenderer.get());
@@ -287,6 +347,18 @@ void GraphicsEngine::mainloop()
         } else {
             /* Optimization */
             SDL_Delay(1);
+        }
+
+        /* We have to reload objects */
+        if (!initQueue.empty())
+            loadObjects = true;
+
+        /* Init late objects */
+        while (!initQueue.empty()) {
+            initQueue.top()->gfx = this;
+            initQueue.top()->init();
+            initQueue.top()->initialized = true;
+            initQueue.pop();
         }
 
         if (elapsed >= 1) {
@@ -336,7 +408,9 @@ Texture *GraphicsEngine::loadTexture(string path)
 
 Font *GraphicsEngine::loadFont(string path, int size)
 {
-    Resource *rawResource = checkResource(path);
+    string infoPath = "font://" + path + "/" + to_string(size);
+
+    Resource *rawResource = checkResource(infoPath);
     Font *foundFont = dynamic_cast<Font*>(rawResource);
 
     if (foundFont != NULL)
@@ -346,6 +420,9 @@ Font *GraphicsEngine::loadFont(string path, int size)
 
     if (!(font->ttfFont))
         return 0;
+
+    /* Ugly but necessary: Replace path */
+    font->path = infoPath;
 
     cacheResource(font);
 
@@ -435,6 +512,16 @@ shared_ptr<Texture> GraphicsEngine::makeTexture(string path, SDL_Texture *raw)
 void GraphicsEngine::stop()
 {
     running = false;
+}
+
+void GraphicsEngine::cacheObjects()
+{
+    loadObjects = true;
+}
+
+void GraphicsEngine::addToInitQueue(const shared_ptr<GraphicObject> &object)
+{
+    initQueue.push(object);
 }
 
 GraphicsEngine::SDL2Systems::SDL2Systems()

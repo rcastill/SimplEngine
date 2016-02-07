@@ -11,10 +11,11 @@
 #include <memory>
 #include <functional>
 #include "Color.h"
-#include "GraphicObject.h"
+//#include "GraphicObject.h"
 #include "Texture.h"
 #include "Font.h"
 #include "Renderer.h"
+//#include "GraphicObject.h"
 
 /* TODO: Fix font caching (different sizes) */
 
@@ -22,10 +23,29 @@ using namespace std;
 
 class Resource;
 class Texture;
+class GraphicObject;
+struct LayerComparison;
 
 typedef vector<shared_ptr<GraphicObject>> GfxObjectVector;
-typedef queue<shared_ptr<GraphicObject>> ObjectQueue;
+typedef priority_queue<shared_ptr<GraphicObject>, vector<shared_ptr<GraphicObject> >, LayerComparison> ObjectQueue;
 typedef vector<shared_ptr<Resource>> ResourceVector;
+
+struct LayerComparison
+{
+    bool operator()(const shared_ptr<GraphicObject> &lhs, const shared_ptr<GraphicObject> &rhs);
+};
+
+enum RenderLayer
+{
+    BACKGROUND,
+    DEFAULT,
+    LEVEL1,
+    LEVEL2,
+    LEVEL3,
+    LEVEL4,
+    LEVEL5,
+    LAST
+};
 
 class GraphicsEngine
 {
@@ -73,6 +93,9 @@ public:
     void mainloop();
     void stop();
 
+    void cacheObjects();
+    void addToInitQueue(const shared_ptr<GraphicObject> &object);
+
 private:
     Resource *checkResource(string path);
     void cacheResource(shared_ptr<Resource> resource);
@@ -82,10 +105,20 @@ private:
     void loadQueue();
     /* Iterates over tree in level order and applies each node with callback if node is
      * enabled */
-    void doLevel(function<void(shared_ptr<GraphicObject>&)> callback);
+    void doLevel(function<void(shared_ptr<GraphicObject>&)> callback, bool load, bool ignoreInitRestriction = false);
+
+    void swapQueues();
+    bool shouldLoad();
+
+    bool loadObjects;
+
     ObjectQueue objectQueue;
+    ObjectQueue objectQueue1;
+    ObjectQueue objectQueue2;
+    ObjectQueue *currentQueue;
+    ObjectQueue *auxQueue;
 
-
+    ObjectQueue initQueue;
 
     unique_ptr<SDL_Window, function<void(SDL_Window*)>> sdlWindow;
     unique_ptr<SDL_Renderer, function<void(SDL_Renderer*)>> sdlRenderer;
