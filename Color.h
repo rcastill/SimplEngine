@@ -32,10 +32,11 @@ public:
 
     static Color BLACK;
     static Color WHITE;
+    static Color RED;
 
 private:
-    SDL_Color sdlColor;
 
+    SDL_Color sdlColor;
     int red;
     int green;
     int blue;

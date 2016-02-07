@@ -69,6 +69,7 @@ Color Color::negative()
 
 Color Color::BLACK(0, 0, 0);
 Color Color::WHITE(255, 255, 255);
+Color Color::RED(255, 0, 0);
 
 SDL_Color Color::getSdlColor()
 {
