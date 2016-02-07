@@ -17,7 +17,7 @@ This project is being developed in [CLion](https://www.jetbrains.com/clion/ "CLi
 - Fix resource disposal bug
 - Remove object capabilities
 
-    *Both items above may imply to partially redesign and improve de resource system*
+    *Both items above may imply to partially redesign and improve the resource system*
 
 - **Network**
 - Document (may be doxygen?)
