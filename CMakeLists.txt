@@ -19,4 +19,3 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} GfxSdlEngine ${SDL2_LIBRARIES} ${SDL2IMAGE
 
 CONFIGURE_FILE(stick.png stick.png COPYONLY)
 CONFIGURE_FILE(Cantarell-Regular.ttf Cantarell-Regular.ttf COPYONLY)
-CONFIGURE_FILE(fighter.png fighter.png COPYONLY)
