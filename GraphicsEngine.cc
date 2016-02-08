@@ -43,11 +43,6 @@ GraphicsEngine::GraphicsEngine(string title, int width, int height, double fps) 
 
     if (tmpRenderer == 0)
         throw runtime_error(SDL_GetError());
-
-    sdlRenderer.get_deleter() = [](SDL_Renderer *r) {
-        SDL_DestroyRenderer(r);
-    };
-    sdlRenderer.reset(tmpRenderer);
 }
 
 GraphicsEngine::GraphicsEngine(int width, int height, double fps)
@@ -77,7 +72,7 @@ void GraphicsEngine::delay(int msecs)
 void GraphicsEngine::setRenderColor(Color color)
 {
     SDL_SetRenderDrawColor(
-            sdlRenderer.get(),
+            renderer,
             color.r(),
             color.g(),
             color.b(),
@@ -114,12 +109,6 @@ double GraphicsEngine::deltaTime() const
 void GraphicsEngine::deltaTime(double delta)
 {
     this->delta = delta;
-}
-
-void GraphicsEngine::loadQueue()
-{
-    for (auto obj : gfxObjects)
-        objectQueue.push(obj);
 }
 
 void GraphicsEngine::doLevel(function<void(shared_ptr<GraphicObject> &)> callback,
@@ -247,7 +236,6 @@ void GraphicsEngine::triggerContinuousUpdate()
     mouseState.rightPressed = (bool) (contButton & SDL_BUTTON(SDL_BUTTON_RIGHT));
 
     // Free update
-    //loadQueue();
     doLevel([&mouseState](shared_ptr<GraphicObject> &obj)
     {
         obj->continuousUpdate(SDL_GetKeyboardState(NULL), mouseState);
@@ -274,9 +262,7 @@ void GraphicsEngine::mainloop()
     //loadQueue();
     doLevel([this](shared_ptr<GraphicObject> &obj)
     {
-        obj->gfx = this;
-        obj->init();
-        obj->initialized = true;
+        obj->initialize(this);
 
     }, shouldLoad(), true);
 
@@ -300,7 +286,7 @@ void GraphicsEngine::mainloop()
     double elapsed = 0;
     int frameCount = 0;
 
-    while (running) {
+    while (running) { ;
         /* Reset */
         render = false;
 
@@ -328,7 +314,7 @@ void GraphicsEngine::mainloop()
         }
 
         if (render) {
-            SDL_RenderClear(sdlRenderer.get());
+            SDL_RenderClear(renderer);
 
             renderer.enabled(true);
             //loadQueue();
@@ -339,7 +325,7 @@ void GraphicsEngine::mainloop()
             }, shouldLoad());
             renderer.enabled(false);
 
-            SDL_RenderPresent(sdlRenderer.get());
+            SDL_RenderPresent(renderer);
 
             /* One more frame in this second */
             frameCount++;
@@ -355,9 +341,7 @@ void GraphicsEngine::mainloop()
 
         /* Init late objects */
         while (!initQueue.empty()) {
-            initQueue.top()->gfx = this;
-            initQueue.top()->init();
-            initQueue.top()->initialized = true;
+            initQueue.top()->initialize(this);
             initQueue.pop();
         }
 
@@ -371,8 +355,8 @@ void GraphicsEngine::mainloop()
 void GraphicsEngine::disposeResource(Resource *resource)
 {
     if (--(resource->refCount) == 0) {
+        cout << availableResIds.empty() << endl;
         availableResIds.push_back(resource->id());
-        cout << 1 << endl;
         resources[resource->id()] = 0;
     }
 }
@@ -393,7 +377,7 @@ Texture *GraphicsEngine::loadTexture(string path)
     if (loadedSurface == NULL)
         return 0;
 
-    sdlTexture = SDL_CreateTextureFromSurface(sdlRenderer.get(), loadedSurface);
+    sdlTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
 
     if (sdlTexture == NULL)
         return 0;
@@ -454,7 +438,7 @@ Texture *GraphicsEngine::makeText(Font *font, string text, Color color, FontQual
     if (surface == NULL)
         return 0;
 
-    SDL_Texture *sdlTexture = SDL_CreateTextureFromSurface(sdlRenderer.get(), surface);
+    SDL_Texture *sdlTexture = SDL_CreateTextureFromSurface(renderer, surface);
 
     if (sdlTexture == NULL)
         return 0;
@@ -479,7 +463,7 @@ Resource *GraphicsEngine::checkResource(string path)
     for (auto &resource : resources) {
         if (resource && resource->getPath() == path) {
             if (resource->unique())
-                return NULL;
+                continue;
 
             return resource.get();
         }
@@ -499,6 +483,8 @@ void GraphicsEngine::cacheResource(shared_ptr<Resource> resource)
         resource->id(resources.size());
         resources.push_back(resource);
     }
+
+    resource->gfx = this;
 }
 
 shared_ptr<Texture> GraphicsEngine::makeTexture(string path, SDL_Texture *raw)

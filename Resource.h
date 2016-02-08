@@ -31,7 +31,7 @@ public:
     string getPath() const;
 
     void id(ResourceVector::size_type id);
-    ResourceVector::size_type id() const;
+    size_t id() const;
 
 private:
     friend class GraphicsEngine;
@@ -39,7 +39,7 @@ private:
     string path;
     int refCount;
     bool resUnique;
-    ResourceVector::size_type resId;
+    size_t resId;
 
 protected:
     GraphicsEngine *gfx;

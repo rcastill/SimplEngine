@@ -51,7 +51,7 @@ void Resource::id(ResourceVector::size_type id)
     resId = id;
 }
 
-ResourceVector::size_type Resource::id() const
+size_t Resource::id() const
 {
     return resId;
 }

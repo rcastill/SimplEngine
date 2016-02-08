@@ -101,8 +101,6 @@ private:
     void cacheResource(shared_ptr<Resource> resource);
     shared_ptr<Texture> makeTexture(string path, SDL_Texture *raw);
 
-    /* Loads queue with initial objects (Root children) */
-    void loadQueue();
     /* Iterates over tree in level order and applies each node with callback if node is
      * enabled */
     void doLevel(function<void(shared_ptr<GraphicObject>&)> callback, bool load, bool ignoreInitRestriction = false);
@@ -112,7 +110,6 @@ private:
 
     bool loadObjects;
 
-    ObjectQueue objectQueue;
     ObjectQueue objectQueue1;
     ObjectQueue objectQueue2;
     ObjectQueue *currentQueue;
@@ -121,7 +118,6 @@ private:
     ObjectQueue initQueue;
 
     unique_ptr<SDL_Window, function<void(SDL_Window*)>> sdlWindow;
-    unique_ptr<SDL_Renderer, function<void(SDL_Renderer*)>> sdlRenderer;
     Renderer renderer;
     string wTitle;
     int windowWidth;
@@ -129,7 +125,7 @@ private:
 
     GfxObjectVector gfxObjects;
     ResourceVector resources;
-    vector<ResourceVector::size_type> availableResIds;
+    vector<size_t> availableResIds;
 
     bool running;
     int loopDelay;

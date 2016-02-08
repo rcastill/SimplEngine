@@ -18,6 +18,7 @@ public:
     ~Renderer();
 
     Renderer& operator=(Renderer&& other);
+    operator SDL_Renderer*();
 
     friend void swap(Renderer& first, Renderer& second);
 

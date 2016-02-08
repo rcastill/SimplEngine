@@ -90,8 +90,9 @@ protected:
 private:
     friend class GraphicsEngine;
     RawResourceVector resources;
-    GraphicsEngine *gfx;
 
+    void initialize(GraphicsEngine *gfx);
+    GraphicsEngine *gfx;
     bool initialized;
 
     /* Render layer and its backup */

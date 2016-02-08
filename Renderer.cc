@@ -105,3 +105,8 @@ void Renderer::renderTexture(Texture *texture, const Position &vector3)
 
     renderTexture(texture, (int) vector3.x, (int) vector3.y, vector3.r);
 }
+
+Renderer::operator SDL_Renderer*()
+{
+    return sdlRenderer;
+}

@@ -190,3 +190,10 @@ void GraphicObject::renderLayer(RenderLayer layer)
 {
     this->layer = layer;
 }
+
+void GraphicObject::initialize(GraphicsEngine *gfx)
+{
+    this->gfx = gfx;
+    init();
+    initialized = true;
+}

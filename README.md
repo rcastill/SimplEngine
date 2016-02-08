@@ -14,11 +14,12 @@ This project is being developed in [CLion](https://www.jetbrains.com/clion/ "CLi
 
 ## To do list
 
-- Fix resource disposal bug
-- Remove object capabilities
+- [x] Fix resource disposal bug
+- [ ] Remove object capabilities
 
     *Both items above may imply to partially redesign and improve the resource system*
 
-- **Network**
-- Document (may be doxygen?)
-- Timer System
+- [ ] **Network**
+- [ ] Document (may be doxygen?)
+- [ ] Timer System
+- [ ] Complete and improve Position class
